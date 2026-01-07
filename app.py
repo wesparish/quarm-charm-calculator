@@ -34,6 +34,7 @@ def calculate():
         "caster_level": int,
         "target_level": int,
         "target_mr": int,
+        "pet_mr_items": int (optional, default 0 - total -MR from items given to pet),
         "resist_diff": int,
         "caster_charisma": int (optional, default 75),
         "is_enchanter": bool (optional, default true - only enchanters get CHA bonus!),
@@ -51,6 +52,7 @@ def calculate():
         resist_diff = int(data.get('resist_diff'))
 
         # Optional parameters
+        pet_mr_items = int(data.get('pet_mr_items', 0))
         caster_charisma = int(data.get('caster_charisma', 75))
         is_enchanter = bool(data.get('is_enchanter', True))
         num_ticks = int(data.get('num_ticks', 100))
@@ -63,6 +65,8 @@ def calculate():
             return jsonify({'error': 'Target level must be between 1 and 65'}), 400
         if not (-200 <= target_mr <= 500):
             return jsonify({'error': 'Target MR must be between -200 and 500'}), 400
+        if not (0 <= pet_mr_items <= 200):
+            return jsonify({'error': 'Pet MR items must be between 0 and 200'}), 400
         if not (10 <= caster_charisma <= 300):
             return jsonify({'error': 'Caster charisma must be between 10 and 300'}), 400
         if not (1 <= num_ticks <= 1000):
@@ -70,14 +74,16 @@ def calculate():
         if not (100 <= num_simulations <= 100000):
             return jsonify({'error': 'Number of simulations must be between 100 and 100000'}), 400
 
-        # Calculate initial land chance
+        # Calculate initial land chance (uses base MR, before pet items)
         initial_land = calculator.calculate_initial_land_chance(
             caster_level, target_level, target_mr, resist_diff, caster_charisma, is_enchanter
         )
 
         # Calculate charm break probabilities over time
+        # Uses effective MR after giving pet -MR items (lower MR = easier to break)
+        effective_mr = target_mr - pet_mr_items
         break_prob = calculator.calculate_charm_break_probability(
-            caster_level, target_level, target_mr, resist_diff,
+            caster_level, target_level, effective_mr, resist_diff,
             caster_charisma, is_enchanter, num_ticks, num_simulations
         )
 
