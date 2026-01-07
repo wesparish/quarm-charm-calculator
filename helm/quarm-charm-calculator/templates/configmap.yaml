@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "quarm-charm-calculator.fullname" . }}
+  labels:
+    {{- include "quarm-charm-calculator.labels" . | nindent 4 }}
+data:
+  app.conf: |
+    # Application configuration
+    # Add any app-specific config here
+

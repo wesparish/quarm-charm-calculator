@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quarm Charm Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group small {
+            margin-top: 5px;
+            color: #718096;
+            font-size: 0.85em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #edf2f7;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-card {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-item label {
+            display: block;
+            font-size: 0.85em;
+            color: #718096;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-item .value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .result-item.success .value {
+            color: #38a169;
+        }
+
+        .result-item.warning .value {
+            color: #dd6b20;
+        }
+
+        .result-item.danger .value {
+            color: #e53e3e;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            min-height: 450px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #edf2f7;
+            font-weight: 600;
+            color: #4a5568;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .probability-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .probability-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38a169 0%, #e53e3e 100%);
+            transition: width 0.3s;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+            border-left: 4px solid #c53030;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        #warning {
+            background: #fef5e7;
+            color: #744210;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+            border-left: 4px solid #dd6b20;
+        }
+
+        #warning.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #bee3f8;
+            border-left: 4px solid #3182ce;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: #2c5282;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧙‍♂️ Quarm Charm Calculator</h1>
+            <p>Calculate animal charm effectiveness based on EQMacEmu resist mechanics</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h4>How Charm Works on Quarm</h4>
+                <p>
+                    Charm spells are checked for breaks every 6 seconds (1 tick). Each tick, there's a 50% chance
+                    a resist check occurs. If the check happens and the NPC resists, the charm breaks.
+                    This calculator simulates thousands of scenarios to show you the probability your charm will last.
+                </p>
+                <p style="margin-top: 10px; font-weight: 600; color: #2c5282;">
+                    ⚠️ IMPORTANT: Select your spell first - Charisma only affects Enchanter charms! Druid and Necromancer charms do NOT get CHA bonuses.
+                </p>
+            </div>
+
+            <form id="calculatorForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="spellPreset">Charm Spell</label>
+                        <select id="spellPreset" required>
+                            <option value="">-- Select a spell --</option>
+                            <!-- Populated by JavaScript -->
+                        </select>
+                        <small>Select your charm spell (required)</small>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="casterLevel">Your Level</label>
+                        <input type="number" id="casterLevel" min="1" max="60" value="60" required>
+                        <small>Player level (1-60)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="targetLevel">NPC Level</label>
+                        <input type="number" id="targetLevel" min="1" max="65" value="55" required>
+                        <small id="targetLevelHelp">Target NPC level (1-65)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="targetMR">NPC Magic Resist</label>
+                        <input type="number" id="targetMR" min="-200" max="500" value="35" required>
+                        <small>Target's MR value (-200 to 500, default 35)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resistDiff">Spell Resist Diff</label>
+                        <input type="number" id="resistDiff" min="-600" max="0" value="-50" required>
+                        <small>Negative = easier to land</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="casterCHA">Your Charisma</label>
+                        <input type="number" id="casterCHA" min="10" max="300" value="200" required>
+                        <small id="chaHelp">Higher CHA helps (Enchanters only!)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numTicks">Ticks to Simulate</label>
+                        <input type="number" id="numTicks" min="1" max="1000" value="200" required>
+                        <small>1 tick = 6 seconds (200 = 20 min)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numSimulations">Simulations</label>
+                        <input type="number" id="numSimulations" min="100" max="100000" value="10000" required>
+                        <small>More = more accurate (slower)</small>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Calculate Charm Effectiveness</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">Reset</button>
+                </div>
+            </form>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Running simulations...</p>
+            </div>
+
+            <div id="error" class="error"></div>
+            <div id="warning" class="warning"></div>
+
+            <div id="results" class="results">
+                <div class="result-card">
+                    <h3>📊 Initial Cast Results</h3>
+                    <div class="result-grid" id="initialResults">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>⏱️ Charm Duration Probabilities</h3>
+                    <div class="result-grid" id="durationResults">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>📈 Break Probability Over Time</h3>
+                    <div class="chart-container">
+                        <canvas id="probabilityChart" style="max-height: 400px;"></canvas>
+                    </div>
+                    <div class="chart-container" style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 10px;">Detailed Probability Table</h4>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <table id="probabilityTable">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Tick</th>
+                                        <th>Still Held %</th>
+                                        <th>Broke %</th>
+                                        <th>Visual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let probabilityChart = null; // Global chart instance
+
+        // Load spell presets when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/spell_presets')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        populateSpellDropdown(data.spells);
+                    }
+                })
+                .catch(error => console.error('Error loading spells:', error));
+        });
+
+        function populateSpellDropdown(spells) {
+            const select = document.getElementById('spellPreset');
+
+            // Group spells by class
+            for (const [className, classSpells] of Object.entries(spells)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = `${className} Charms`;
+
+                classSpells.forEach(spell => {
+                    const option = document.createElement('option');
+                    option.value = spell.resist_diff;
+                    option.dataset.spellId = spell.id;
+                    option.dataset.maxLevel = spell.max_level;
+                    option.dataset.className = className;
+
+                    let label = `${spell.name} (Lvl ${spell.level}, Max NPC ${spell.max_level}) [${spell.resist_diff}]`;
+                    if (spell.special && spell.special.length > 0) {
+                        label += ` - ${spell.special.join(', ')}`;
+                    }
+
+                    option.textContent = label;
+                    optgroup.appendChild(option);
+                });
+
+                select.appendChild(optgroup);
+            }
+
+            // Add custom option at the end
+            const customOpt = document.createElement('option');
+            customOpt.value = 'custom';
+            customOpt.textContent = '-- Custom Resist Diff --';
+            select.appendChild(customOpt);
+        }
+
+        // Handle spell preset selection
+        document.getElementById('spellPreset').addEventListener('change', function() {
+            const value = this.value;
+            const resistDiffInput = document.getElementById('resistDiff');
+            const selectedOption = this.options[this.selectedIndex];
+            const chaHelp = document.getElementById('chaHelp');
+
+            if (value && value !== 'custom') {
+                resistDiffInput.value = value;
+                resistDiffInput.readOnly = true;
+
+                // Update max level validation
+                const maxLevel = selectedOption.dataset.maxLevel;
+                if (maxLevel) {
+                    validateNPCLevel(maxLevel);
+                }
+
+                // Update CHA help text based on spell class
+                const className = selectedOption.dataset.className;
+                if (className === 'Enchanter') {
+                    chaHelp.textContent = 'Higher CHA helps (Enchanter charm)';
+                    chaHelp.style.color = '#38a169';
+                } else {
+                    chaHelp.textContent = `CHA does NOT affect charm (${className})`;
+                    chaHelp.style.color = '#e53e3e';
+                }
+            } else if (value === 'custom') {
+                resistDiffInput.readOnly = false;
+                resistDiffInput.focus();
+                // Reset validation
+                document.getElementById('targetLevelHelp').textContent = 'Target NPC level (1-65)';
+                document.getElementById('targetLevelHelp').style.color = '#718096';
+                // For custom mode, assume Enchanter
+                chaHelp.textContent = 'CHA will affect charm (assuming Enchanter)';
+                chaHelp.style.color = '#38a169';
+            } else {
+                // Reset validation when no spell selected
+                document.getElementById('targetLevelHelp').textContent = 'Target NPC level (1-65)';
+                document.getElementById('targetLevelHelp').style.color = '#718096';
+                // Reset CHA help
+                chaHelp.textContent = 'Please select a charm spell';
+                chaHelp.style.color = '#718096';
+            }
+        });
+
+        // Validate NPC level against charm spell max level
+        function validateNPCLevel(maxLevel) {
+            const targetLevelInput = document.getElementById('targetLevel');
+            const targetLevel = parseInt(targetLevelInput.value);
+            const helpText = document.getElementById('targetLevelHelp');
+
+            if (maxLevel && targetLevel > parseInt(maxLevel)) {
+                helpText.textContent = `⚠️ NPC level ${targetLevel} exceeds charm max of ${maxLevel}!`;
+                helpText.style.color = '#e53e3e';
+                targetLevelInput.style.borderColor = '#e53e3e';
+            } else if (maxLevel) {
+                helpText.textContent = `Target NPC level (max ${maxLevel} for this spell)`;
+                helpText.style.color = '#38a169';
+                targetLevelInput.style.borderColor = '#e2e8f0';
+            }
+        }
+
+        // Add real-time validation when NPC level changes
+        document.getElementById('targetLevel').addEventListener('input', function() {
+            const spellSelect = document.getElementById('spellPreset');
+            const selectedOption = spellSelect.options[spellSelect.selectedIndex];
+            const maxLevel = selectedOption.dataset.maxLevel;
+
+            if (maxLevel) {
+                validateNPCLevel(maxLevel);
+            }
+        });
+
+        // Form submission
+        document.getElementById('calculatorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Hide previous results/errors
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('warning').classList.remove('show');
+            document.getElementById('loading').classList.add('show');
+
+            // Validate NPC level against charm max level
+            const spellSelect = document.getElementById('spellPreset');
+            const selectedOption = spellSelect.options[spellSelect.selectedIndex];
+            const maxLevel = selectedOption.dataset.maxLevel;
+            const targetLevel = parseInt(document.getElementById('targetLevel').value);
+            const spellClassName = selectedOption.dataset.className;
+            const spellValue = spellSelect.value;
+
+            // Validate spell selection
+            if (!spellValue || spellValue === '') {
+                showError('Please select a charm spell first!');
+                return;
+            }
+
+            if (maxLevel && targetLevel > parseInt(maxLevel)) {
+                showError(`Warning: NPC level ${targetLevel} exceeds the charm spell's max level of ${maxLevel}. The charm will fail to land!`);
+                return;
+            }
+
+            // Determine if this is an enchanter charm (only Enchanters get CHA bonus)
+            // For custom mode, default to Enchanter (most common use case)
+            const isEnchanter = spellValue === 'custom' ? true : spellClassName === 'Enchanter';
+
+            // Gather form data
+            const formData = {
+                caster_level: parseInt(document.getElementById('casterLevel').value),
+                target_level: targetLevel,
+                target_mr: parseInt(document.getElementById('targetMR').value),
+                resist_diff: parseInt(document.getElementById('resistDiff').value),
+                caster_charisma: parseInt(document.getElementById('casterCHA').value),
+                is_enchanter: isEnchanter,
+                num_ticks: parseInt(document.getElementById('numTicks').value),
+                num_simulations: parseInt(document.getElementById('numSimulations').value)
+            };
+
+            try {
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Calculation failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        });
+
+        function displayResults(data) {
+            const initial = data.initial_land_chance;
+            const breakProb = data.break_probability;
+
+            // Initial cast results
+            const initialHTML = `
+                <div class="result-item ${initial.success_chance > 80 ? 'success' : initial.success_chance > 50 ? 'warning' : 'danger'}">
+                    <label>Initial Land Chance</label>
+                    <div class="value">${initial.success_chance.toFixed(1)}%</div>
+                </div>
+                <div class="result-item">
+                    <label>Resist Chance</label>
+                    <div class="value">${initial.resist_chance}</div>
+                </div>
+                <div class="result-item">
+                    <label>Level Modifier</label>
+                    <div class="value">${initial.level_mod}</div>
+                </div>
+                <div class="result-item">
+                    <label>Resist Modifier</label>
+                    <div class="value">${initial.resist_modifier}</div>
+                </div>
+            `;
+            document.getElementById('initialResults').innerHTML = initialHTML;
+
+            // Duration results
+            const durationHTML = `
+                <div class="result-item">
+                    <label>Per-Tick Break Chance</label>
+                    <div class="value">${breakProb.single_tick_break_probability}%</div>
+                </div>
+                <div class="result-item ${breakProb.expected_duration_minutes > 10 ? 'success' : breakProb.expected_duration_minutes > 5 ? 'warning' : 'danger'}">
+                    <label>Expected Duration</label>
+                    <div class="value">${breakProb.expected_duration_minutes.toFixed(1)} min</div>
+                </div>
+                <div class="result-item">
+                    <label>Simulations Run</label>
+                    <div class="value">${breakProb.num_simulations.toLocaleString()}</div>
+                </div>
+            `;
+            document.getElementById('durationResults').innerHTML = durationHTML;
+
+            // Create the line chart
+            createProbabilityChart(breakProb.tick_probabilities);
+
+            // Probability table (show every 5th tick to keep it manageable)
+            const tableBody = document.getElementById('probabilityTable').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            breakProb.tick_probabilities.forEach((tick, index) => {
+                if (index % 5 === 0 || tick.tick === 1) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${tick.minutes} min</td>
+                        <td>${tick.tick}</td>
+                        <td style="font-weight: 600; color: #38a169;">${tick.prob_held}%</td>
+                        <td style="font-weight: 600; color: #e53e3e;">${tick.prob_broke}%</td>
+                        <td>
+                            <div class="probability-bar">
+                                <div class="probability-bar-fill" style="width: ${tick.prob_broke}%"></div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            });
+
+            document.getElementById('results').classList.add('show');
+        }
+
+        function createProbabilityChart(tickData) {
+            const ctx = document.getElementById('probabilityChart');
+
+            // Destroy existing chart if it exists
+            if (probabilityChart) {
+                probabilityChart.destroy();
+            }
+
+            // Sample data points for the chart (every 5th tick for performance)
+            const sampledData = tickData.filter((tick, index) => index % 5 === 0 || index === 0);
+
+            const labels = sampledData.map(tick => `${tick.minutes} min`);
+            const heldData = sampledData.map(tick => tick.prob_held);
+            const brokeData = sampledData.map(tick => tick.prob_broke);
+
+            probabilityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Charm Still Held (%)',
+                            data: heldData,
+                            borderColor: '#38a169',
+                            backgroundColor: 'rgba(56, 161, 105, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'Charm Broke (%)',
+                            data: brokeData,
+                            borderColor: '#e53e3e',
+                            backgroundColor: 'rgba(229, 62, 62, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Charm Survival Probability Over Time',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            padding: 20
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Elapsed',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Probability (%)',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function resetForm() {
+            document.getElementById('calculatorForm').reset();
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('warning').classList.remove('show');
+            document.getElementById('spellPreset').value = '';
+            document.getElementById('resistDiff').readOnly = false;
+            document.getElementById('chaHelp').textContent = 'Please select a charm spell';
+            document.getElementById('chaHelp').style.color = '#718096';
+            document.getElementById('targetLevelHelp').textContent = 'Target NPC level (1-65)';
+            document.getElementById('targetLevelHelp').style.color = '#718096';
+            document.getElementById('targetLevel').style.borderColor = '#e2e8f0';
+            document.getElementById('targetMR').value = '35';
+        }
+    </script>
+</body>
+</html>
+
