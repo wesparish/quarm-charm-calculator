@@ -488,7 +488,7 @@
                         cursor: pointer;
                     ">
                     <small style="color: #718096;">
-                        Upload your log file as a ZIP archive (e.g., eqlog_CharacterName_server.zip). Compress your .txt log file first.
+                        Upload your log file as a ZIP archive (max 4MB). Compress your .txt log file first. For large logs, compress only recent data.
                     </small>
                 </div>
 
@@ -1025,6 +1025,13 @@
                 return;
             }
 
+            // Check file size (4MB limit for Vercel serverless)
+            const maxSize = 4 * 1024 * 1024; // 4MB
+            if (file.size > maxSize) {
+                showLogError(`File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum size is 4MB. Your log file may be too large - try compressing a smaller portion of it.`);
+                return;
+            }
+
             // Hide previous results/errors
             document.getElementById('logAnalysisResults').style.display = 'none';
             document.getElementById('logAnalysisError').style.display = 'none';
@@ -1038,6 +1045,23 @@
                     method: 'POST',
                     body: formData
                 });
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Vercel/server returned HTML error page
+                    const text = await response.text();
+                    document.getElementById('logAnalysisLoading').style.display = 'none';
+
+                    if (text.toLowerCase().includes('forbidden')) {
+                        showLogError('Upload rejected by server. File may be too large or contain invalid content. Try a smaller log file.');
+                    } else if (text.toLowerCase().includes('timeout')) {
+                        showLogError('Request timed out. Your log file may be too large to process. Try a smaller file.');
+                    } else {
+                        showLogError('Server error. Please try again with a smaller log file.');
+                    }
+                    return;
+                }
 
                 const data = await response.json();
 

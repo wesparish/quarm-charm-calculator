@@ -106,6 +106,11 @@ This helps you compare the calculator's predictions against your actual gameplay
 
 **Why ZIP?** EQ log files can be very large (multi-MB), but they're plain text and compress extremely well. A 50MB log file typically compresses to under 2MB, making uploads much faster.
 
+**File Size Limits:**
+- **Vercel Deployment**: 4MB maximum (serverless platform limit)
+- **Local/Docker**: 50MB maximum
+- If your compressed log is too large, create a smaller ZIP with just recent log entries
+
 **Command Line Usage** (uses uncompressed files):
 ```bash
 # Analyze a log file from the command line

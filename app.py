@@ -15,7 +15,9 @@ import zipfile
 import io
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max file size
+# Vercel has a 4.5MB body size limit for serverless functions
+# ZIP compressed logs are typically 2-5% of original size
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # 4 MB max file size (safe for Vercel)
 calculator = CharmCalculator()
 
 

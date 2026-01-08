@@ -32,6 +32,8 @@
 - **Break probability calculation**: Now uses effective MR (base MR - pet items) for per-tick checks
 - **Initial land chance**: Still uses base NPC MR (before giving pet items)
 - **CSS fixes**: Fixed `.warning` class conflict that was hiding expected duration display
+- **File size limit**: Reduced from 50MB to 4MB for Vercel serverless compatibility
+- **Frontend validation**: Added client-side file size check and better error handling for serverless deployments
 
 ### Removed
 - **spell_parser.py**: Removed unreliable spells_en.txt parser
