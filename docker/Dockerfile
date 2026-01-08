@@ -26,11 +26,9 @@ COPY --from=builder /root/.local /home/appuser/.local
 COPY app.py .
 COPY charm_calculator.py .
 COPY charm_spells_data.py .
+COPY update_charm_spells.py .
 COPY templates/ templates/
 COPY static/ static/
-
-# Create data directory (optional, for spell file)
-RUN mkdir -p data
 
 # Set ownership to non-root user
 RUN chown -R appuser:appuser /app

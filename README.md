@@ -9,6 +9,7 @@ A web-based tool to calculate animal charm effectiveness for the Quarm EverQuest
 - **Real EQMacEmu Logic**: Based directly on the `CheckResistSpell` method from `zone/spells.cpp`
 - **Multiple Spell Support**: Presets for all common charm spells
 - **Charisma Calculations**: Accounts for enchanter charisma bonuses (CHA > 75 reduces resist modifier)
+- **Log File Analysis**: Upload your EQ log file to see real charm duration statistics (avg, min, max, P90, P95, P99)
 - **Interactive Web UI**: Beautiful, modern interface with real-time calculations
 
 ## How Charm Works on Quarm
@@ -24,6 +25,22 @@ Based on the EQMacEmu source code analysis:
 4. **Charisma Bonus (ENCHANTER ONLY!)**: For charm/mez spells, **ONLY ENCHANTERS** with CHA > 75 reduce resist modifier by (CHA-75)/8
    - **Druids and Necromancers do NOT get CHA bonuses for charm!**
    - This is explicitly coded: `if (caster->GetClass() == Class::Enchanter)`
+
+## Spell Data
+
+The calculator includes accurate charm spell data dynamically scraped from [pqdi.cc](https://www.pqdi.cc/spells):
+- **6 Enchanter charms** (Charm → Command of Druzzil)
+- **7 Druid animal charms** (Befriend Animal → Command of Tunare)
+- **1 Necromancer undead charm** (Beguile Undead)
+
+All spell data is automatically fetched from [pqdi.cc](https://www.pqdi.cc/spells), the authoritative database for Project Quarm/P99 era EverQuest spells.
+
+**To update spell data**:
+```bash
+make refresh-spells  # Scrape latest from pqdi.cc and regenerate
+```
+
+See [SPELL_DATA.md](SPELL_DATA.md) for detailed documentation on the scraping process.
 
 ## Installation
 
@@ -63,6 +80,40 @@ The tool will show:
 - Per-tick break chance
 - Expected charm duration
 - Detailed probability table over time
+- Interactive graph of charm survival probability
+
+### Log File Analysis
+
+At the bottom of the page, you can upload your EQ log file to analyze your actual charm durations:
+
+1. **Compress your log file**: First, compress your `eqlog_CharacterName_server.txt` file into a ZIP archive
+   ```bash
+   # On Linux/Mac
+   zip eqlog_Fibbon_pq.proj.zip eqlog_Fibbon_pq.proj.txt
+
+   # On Windows, right-click the file -> Send to -> Compressed (zipped) folder
+   ```
+
+2. Scroll to the "Analyze Your Charm Logs" section
+3. Click "Choose File" and select your ZIP file
+4. Click "Analyze Log File"
+
+The tool will extract all charm cast and break events from your log and display:
+- **Overall Statistics**: Average, median, min, max, P90, P95, P99 durations across all charms
+- **By Spell**: Separate statistics for each charm spell you've used
+
+This helps you compare the calculator's predictions against your actual gameplay results!
+
+**Why ZIP?** EQ log files can be very large (multi-MB), but they're plain text and compress extremely well. A 50MB log file typically compresses to under 2MB, making uploads much faster.
+
+**Command Line Usage** (uses uncompressed files):
+```bash
+# Analyze a log file from the command line
+make test-log LOG_FILE=/path/to/eqlog.txt
+
+# Or directly with Python
+python3 log_parser.py /path/to/eqlog.txt
+```
 
 ## Example Results
 
@@ -106,9 +157,10 @@ The tool runs thousands of simulations (default 10,000) to determine statistical
 
 - `app.py` - Flask web server
 - `charm_calculator.py` - Core resist calculation logic
-- `charm_spells_data.py` - Database of all charm spells (Enchanter, Druid, Necromancer)
-- `spell_parser.py` - Parser for EQ spells_en.txt file (reference/unused)
-- `data/spells_en.txt` - Copy of EQ client spell file (for reference)
+- `charm_spells_data.py` - Generated database of all charm spells (Enchanter, Druid, Necromancer)
+- `scrape_pqdi_spells.py` - Web scraper to fetch spell data from pqdi.cc
+- `update_charm_spells.py` - Generates charm_spells_data.py from scraped JSON
+- `pqdi_charm_spells.json` - Cached spell data from pqdi.cc
 - `templates/index.html` - Web interface
 - `requirements.txt` - Python dependencies
 - `README.md` - This file

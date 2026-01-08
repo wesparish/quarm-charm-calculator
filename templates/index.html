@@ -342,7 +342,7 @@
                     ⚠️ IMPORTANT: Select your spell first - Charisma only affects Enchanter charms! Druid and Necromancer charms do NOT get CHA bonuses.
                 </p>
                 <p style="margin-top: 10px; font-style: italic; color: #2c5282;">
-                    💡 TIP: Use "Pet -MR Items" to see how giving your charmed pet items that reduce magic resistance affects break probability.
+                    💡 TIP: Use "Pet -MR Items and Debuffs" to account for -MR debuffs cast before charming and -MR items given to your charmed pet.
                 </p>
             </div>
 
@@ -377,9 +377,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="petMRItems">Pet -MR Items Total</label>
+                        <label for="petMRItems">Pet -MR Items and Debuffs Total</label>
                         <input type="number" id="petMRItems" min="0" max="200" value="0">
-                        <small id="petMRHelp">Total -MR from items given to pet (0-200)</small>
+                        <small id="petMRHelp">Total -MR from debuffs and items (0-200, e.g., 10 from debuff + 20 from items = 30)</small>
                     </div>
 
                     <div class="form-group">
@@ -434,6 +434,9 @@
                     <div class="result-grid" id="durationResults">
                         <!-- Populated by JavaScript -->
                     </div>
+                    <div id="durationStats" style="margin-top: 20px;">
+                        <!-- Populated by JavaScript -->
+                    </div>
                 </div>
 
                 <div class="result-card">
@@ -459,6 +462,70 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log File Analyzer Section -->
+    <div class="container" style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #e2e8f0;">
+        <h2 style="text-align: center; color: #2d3748; margin-bottom: 10px;">📊 Analyze Your Charm Logs</h2>
+        <p style="text-align: center; color: #4a5568; margin-bottom: 30px;">
+            Upload your EQ log file to see real charm duration statistics from your gameplay
+        </p>
+
+        <div style="max-width: 600px; margin: 0 auto;">
+            <form id="logUploadForm" style="margin-bottom: 30px;">
+                <div class="form-group">
+                    <label for="logFile" style="font-weight: 600; color: #2d3748;">Select Compressed EQ Log File</label>
+                    <input type="file" id="logFile" accept=".zip" required style="
+                        width: 100%;
+                        padding: 10px;
+                        border: 2px dashed #cbd5e0;
+                        border-radius: 8px;
+                        background: #f7fafc;
+                        cursor: pointer;
+                    ">
+                    <small style="color: #718096;">
+                        Upload your log file as a ZIP archive (e.g., eqlog_CharacterName_server.zip). Compress your .txt log file first.
+                    </small>
+                </div>
+
+                <button type="submit" class="button" style="width: 100%; margin-top: 10px;">
+                    📈 Analyze Log File
+                </button>
+            </form>
+
+            <div id="logAnalysisLoading" style="display: none; text-align: center; padding: 30px;">
+                <div style="font-size: 24px; margin-bottom: 10px;">⏳</div>
+                <div style="color: #4a5568;">Analyzing log file...</div>
+            </div>
+
+            <div id="logAnalysisError" style="display: none; padding: 20px; background: #fed7d7; border: 1px solid #fc8181; border-radius: 8px; color: #c53030; margin-bottom: 20px;">
+            </div>
+
+            <div id="logAnalysisResults" style="display: none;">
+                <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">
+                    Overall Statistics (<span id="logTotalCharms"></span> charms found)
+                </h3>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: #4299e1; color: white;">
+                            <th style="padding: 12px; text-align: left;">Statistic</th>
+                            <th style="padding: 12px; text-align: right;">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logOverallStats">
+                    </tbody>
+                </table>
+
+                <div id="logBySpellSection" style="display: none;">
+                    <h3 style="color: #2d3748; margin-bottom: 20px; text-align: center;">
+                        By Spell
+                    </h3>
+                    <div id="logBySpellStats">
                     </div>
                 </div>
             </div>
@@ -595,10 +662,10 @@
             const helpText = document.getElementById('petMRHelp');
 
             if (petMRItems > 0) {
-                helpText.textContent = `Total -MR from items (Effective MR for breaks: ${effectiveMR})`;
+                helpText.textContent = `Total -MR from debuffs and items (Effective MR for breaks: ${effectiveMR})`;
                 helpText.style.color = '#38a169';
             } else {
-                helpText.textContent = 'Total -MR from items given to pet (0-200)';
+                helpText.textContent = 'Total -MR from debuffs and items (0-200, e.g., 10 from debuff + 20 from items = 30)';
                 helpText.style.color = '#718096';
             }
         }
@@ -710,7 +777,7 @@
                     <div class="value">${breakProb.single_tick_break_probability}%</div>
                 </div>
                 <div class="result-item ${breakProb.expected_duration_minutes > 10 ? 'success' : breakProb.expected_duration_minutes > 5 ? 'warning' : 'danger'}">
-                    <label>Expected Duration</label>
+                    <label>Expected Duration (Avg)</label>
                     <div class="value">${breakProb.expected_duration_minutes.toFixed(1)} min</div>
                 </div>
                 <div class="result-item">
@@ -719,6 +786,55 @@
                 </div>
             `;
             document.getElementById('durationResults').innerHTML = durationHTML;
+
+            // Duration statistics table
+            const stats = breakProb.duration_stats;
+            const statsHTML = `
+                <h3 style="color: #2d3748; margin: 20px 0 15px 0; font-size: 18px;">📊 Charm Duration Statistics</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <thead>
+                        <tr style="background: #4299e1; color: white;">
+                            <th style="padding: 12px; text-align: left;">Statistic</th>
+                            <th style="padding: 12px; text-align: right;">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">Average (Mean)</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #2563eb; font-weight: 600;">${stats.avg_minutes.toFixed(2)} min (${stats.avg_seconds.toFixed(1)}s)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Median (50th percentile)</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.median_minutes.toFixed(2)} min (${stats.median_seconds.toFixed(1)}s)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Minimum</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.min_minutes.toFixed(2)} min (${stats.min_seconds.toFixed(1)}s)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Maximum</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.max_minutes.toFixed(2)} min (${stats.max_seconds.toFixed(1)}s)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">P90 (90th percentile)</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.p90_minutes.toFixed(2)} min (${stats.p90_seconds.toFixed(1)}s)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">P95 (95th percentile)</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.p95_minutes.toFixed(2)} min (${stats.p95_seconds.toFixed(1)}s)</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px;">P99 (99th percentile)</td>
+                            <td style="padding: 12px; text-align: right;">${stats.p99_minutes.toFixed(2)} min (${stats.p99_seconds.toFixed(1)}s)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="color: #718096; font-size: 14px; font-style: italic; margin-top: -10px;">
+                    💡 These statistics are based on ${breakProb.num_simulations.toLocaleString()} Monte Carlo simulations.
+                    ${breakProb.percent_lasting_full_duration > 0 ? `${breakProb.percent_lasting_full_duration}% of charms lasted the full simulation duration.` : ''}
+                </p>
+            `;
+            document.getElementById('durationStats').innerHTML = statsHTML;
 
             // Create the line chart
             createProbabilityChart(breakProb.tick_probabilities);
@@ -895,6 +1011,136 @@
             document.getElementById('targetLevel').style.borderColor = '#e2e8f0';
             document.getElementById('targetMR').value = '35';
             document.getElementById('petMRItems').value = '0';
+        }
+
+        // Log File Upload Handler
+        document.getElementById('logUploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('logFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showLogError('Please select a log file');
+                return;
+            }
+
+            // Hide previous results/errors
+            document.getElementById('logAnalysisResults').style.display = 'none';
+            document.getElementById('logAnalysisError').style.display = 'none';
+            document.getElementById('logAnalysisLoading').style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('logfile', file);
+
+                const response = await fetch('/api/analyze_log', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                document.getElementById('logAnalysisLoading').style.display = 'none';
+
+                if (!response.ok || !data.success) {
+                    showLogError(data.error || data.message || 'Failed to analyze log file');
+                    return;
+                }
+
+                displayLogResults(data);
+
+            } catch (error) {
+                document.getElementById('logAnalysisLoading').style.display = 'none';
+                showLogError('Error uploading file: ' + error.message);
+            }
+        });
+
+        function showLogError(message) {
+            const errorDiv = document.getElementById('logAnalysisError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function displayLogResults(data) {
+            document.getElementById('logTotalCharms').textContent = data.total_charms;
+
+            // Build overall stats table
+            const overallStats = data.overall;
+            const statsHtml = `
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">Average</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #2563eb; font-weight: 600;">${overallStats.avg_formatted} (${overallStats.avg}s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Median</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${overallStats.median_formatted} (${overallStats.median}s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Minimum</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${overallStats.min_formatted} (${overallStats.min}s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Maximum</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${overallStats.max_formatted} (${overallStats.max}s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">P90 (90th percentile)</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${overallStats.p90_formatted} (${overallStats.p90}s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">P95 (95th percentile)</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">${overallStats.p95_formatted} (${overallStats.p95}s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;">P99 (99th percentile)</td>
+                    <td style="padding: 12px; text-align: right;">${overallStats.p99_formatted} (${overallStats.p99}s)</td>
+                </tr>
+            `;
+
+            document.getElementById('logOverallStats').innerHTML = statsHtml;
+
+            // Build per-spell stats if available
+            if (Object.keys(data.by_spell).length > 0) {
+                let bySpellHtml = '';
+
+                for (const [spellName, stats] of Object.entries(data.by_spell)) {
+                    bySpellHtml += `
+                        <div style="margin-bottom: 30px;">
+                            <h4 style="color: #2d3748; margin-bottom: 15px;">
+                                ${spellName} <span style="color: #718096; font-size: 14px; font-weight: normal;">(${stats.count} charms)</span>
+                            </h4>
+                            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">Average</td>
+                                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #2563eb; font-weight: 600;">${stats.avg_formatted} (${stats.avg}s)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Median</td>
+                                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.median_formatted} (${stats.median}s)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Min / Max</td>
+                                        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right;">${stats.min_formatted} / ${stats.max_formatted}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px;">P90 / P95 / P99</td>
+                                        <td style="padding: 10px; text-align: right;">${stats.p90_formatted} / ${stats.p95_formatted} / ${stats.p99_formatted}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('logBySpellStats').innerHTML = bySpellHtml;
+                document.getElementById('logBySpellSection').style.display = 'block';
+            } else {
+                document.getElementById('logBySpellSection').style.display = 'none';
+            }
+
+            document.getElementById('logAnalysisResults').style.display = 'block';
         }
     </script>
 </body>

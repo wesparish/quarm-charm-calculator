@@ -1,130 +1,120 @@
 """
-Hardcoded charm spell data for Quarm server.
+Charm spell data for Quarm server.
 
-This includes all known charm spells with their resist diffs and max levels.
-Data extracted from EQMacEmu server source code and verified against game data.
+Data sourced from pqdi.cc spell database (https://www.pqdi.cc/spells).
+Accurate for Classic through Velious era (Quarm/P99).
+
+To update: Run update_charm_spells.py
 """
 
 # Charm spell database
-# Format: spell_id: (name, resist_diff, max_level, classes)
+# Format: spell_id: {name, resist_diff, max_level, classes, spell_level, ...}
 CHARM_SPELLS = {
-    # Enchanter Charms
-    300: {
-        'name': 'Charm',
-        'resist_diff': -30,
-        'max_level': 29,
-        'classes': ['Enchanter'],
-        'spell_level': 12
+    245: {
+        'name': 'Befriend Animal',
+        'resist_diff': 0,
+        'max_level': 24,
+        'classes': ['Druid'],
+        'spell_level': 14,
+        'animal_only': True
     },
-    182: {
-        'name': 'Beguile',
-        'resist_diff': -30,
-        'max_level': 39,
-        'classes': ['Enchanter'],
-        'spell_level': 23
-    },
-    183: {
-        'name': 'Cajoling Whispers',
-        'resist_diff': -30,
-        'max_level': 44,
-        'classes': ['Enchanter'],
-        'spell_level': 33
-    },
-    184: {
-        'name': 'Allure',
-        'resist_diff': -50,
-        'max_level': 49,
-        'classes': ['Enchanter'],
-        'spell_level': 43
-    },
-    1705: {
-        'name': "Boltran's Agacerie",
-        'resist_diff': -50,
-        'max_level': 51,
-        'classes': ['Enchanter'],
-        'spell_level': 53
-    },
-    1693: {
-        'name': 'Ordinance',
-        'resist_diff': -100,
-        'max_level': 53,
-        'classes': ['Enchanter'],
-        'spell_level': 58
-    },
-    1694: {
-        'name': 'Command of Druzzil',
-        'resist_diff': -200,
-        'max_level': 55,
-        'classes': ['Enchanter'],
-        'spell_level': 60
-    },
-
-    # Druid Animal Charms
     260: {
         'name': 'Charm Animals',
-        'resist_diff': -30,
-        'max_level': 29,
+        'resist_diff': 0,
+        'max_level': 33,
         'classes': ['Druid'],
-        'spell_level': 23,
+        'spell_level': 24,
+        'animal_only': True
+    },
+    753: {
+        'name': 'Beguile Plants',
+        'resist_diff': 0,
+        'max_level': 25,
+        'classes': ['Druid'],
+        'spell_level': 29,
         'animal_only': True
     },
     141: {
         'name': 'Beguile Animals',
-        'resist_diff': -30,
-        'max_level': 34,
+        'resist_diff': 0,
+        'max_level': 43,
         'classes': ['Druid'],
         'spell_level': 34,
         'animal_only': True
     },
     142: {
         'name': 'Allure of the Wild',
-        'resist_diff': -30,
-        'max_level': 39,
+        'resist_diff': 0,
+        'max_level': 49,
         'classes': ['Druid'],
-        'spell_level': 39,
+        'spell_level': 44,
         'animal_only': True
     },
     1553: {
         'name': 'Call of Karana',
-        'resist_diff': -30,
+        'resist_diff': 0,
         'max_level': 53,
         'classes': ['Druid'],
-        'spell_level': 51,
+        'spell_level': 52,
         'animal_only': True
     },
-
-    # Necromancer Undead Charms
+    3445: {
+        'name': 'Command of Tunare',
+        'resist_diff': 0,
+        'max_level': 60,
+        'classes': ['Druid'],
+        'spell_level': 63,
+        'animal_only': True
+    },
+    300: {
+        'name': 'Charm',
+        'resist_diff': 0,
+        'max_level': 25,
+        'classes': ['Enchanter'],
+        'spell_level': 12
+    },
+    182: {
+        'name': 'Beguile',
+        'resist_diff': 0,
+        'max_level': 37,
+        'classes': ['Enchanter'],
+        'spell_level': 24
+    },
+    183: {
+        'name': 'Cajoling Whispers',
+        'resist_diff': 0,
+        'max_level': 46,
+        'classes': ['Enchanter'],
+        'spell_level': 39
+    },
+    184: {
+        'name': 'Allure',
+        'resist_diff': 0,
+        'max_level': 51,
+        'classes': ['Enchanter'],
+        'spell_level': 49
+    },
+    1705: {
+        'name': 'Boltran`s Agacerie',
+        'resist_diff': -10,
+        'max_level': 53,
+        'classes': ['Enchanter'],
+        'spell_level': 53
+    },
+    3355: {
+        'name': 'Command of Druzzil',
+        'resist_diff': 0,
+        'max_level': 64,
+        'classes': ['Enchanter'],
+        'spell_level': 64
+    },
     197: {
         'name': 'Beguile Undead',
-        'resist_diff': -30,
-        'max_level': 38,
+        'resist_diff': 0,
+        'max_level': 46,
         'classes': ['Necromancer'],
-        'spell_level': 24,
+        'spell_level': 34,
         'undead_only': True
-    },
-    642: {
-        'name': 'Allure of Death',
-        'resist_diff': -30,
-        'max_level': 49,
-        'classes': ['Necromancer'],
-        'spell_level': 49,
-        'undead_only': True
-    },
-
-    # NPC/Special Charms
-    841: {
-        'name': 'Dragon Charm',
-        'resist_diff': -50,
-        'max_level': 49,
-        'classes': ['NPC'],
-        'npc_only': True
-    },
-    912: {
-        'name': 'Vampire Charm',
-        'resist_diff': -30,
-        'max_level': 60,
-        'classes': ['NPC'],
-        'npc_only': True
     },
 }
 
@@ -186,4 +176,3 @@ if __name__ == "__main__":
                   f"Level {spell.get('spell_level', '?'):2} | "
                   f"Max NPC: {spell['max_level']:2d} | "
                   f"Resist: {spell['resist_diff']:4d}{special_str}")
-

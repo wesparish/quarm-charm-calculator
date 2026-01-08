@@ -29,7 +29,6 @@ build/
 *.md
 !README.md
 CHARISMA_TRUTH.md
-SPELL_DATABASE.md
 VENV.md
 USAGE.md
 DOCKER_K8S_DEPLOYMENT.md
@@ -43,19 +42,17 @@ helm/
 docker/
 .dockerignore
 
-# Data files
-data/
+# SQL files
 *.sql
-
-# Spell parser (not needed in container)
-spell_parser.py
-eqspellparser/
 
 # Keep these critical files
 !requirements.txt
 !app.py
 !charm_calculator.py
 !charm_spells_data.py
+!pqdi_charm_spells.json
+!scrape_pqdi_spells.py
+!update_charm_spells.py
 !templates/
 !static/
 

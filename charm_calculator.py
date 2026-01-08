@@ -190,8 +190,11 @@ class CharmCalculator:
 
         # Run Monte Carlo simulation
         breaks_by_tick = [0] * (num_ticks + 1)
+        charms_still_active = 0  # Count charms that lasted the full duration
+        break_times = []  # Track actual break times for percentile calculations
 
         for _ in range(num_simulations):
+            broke = False
             for tick in range(1, num_ticks + 1):
                 # 50% chance check happens
                 if random.randint(0, 99) < 50:
@@ -200,7 +203,13 @@ class CharmCalculator:
                     if roll <= resist_chance:
                         # Charm broke!
                         breaks_by_tick[tick] += 1
+                        break_times.append(tick * 6)  # Store break time in seconds
+                        broke = True
                         break
+
+            if not broke:
+                charms_still_active += 1
+                break_times.append(num_ticks * 6)  # Count as lasting full duration
 
         # Calculate cumulative probabilities
         cumulative_breaks = 0
@@ -220,8 +229,34 @@ class CharmCalculator:
             })
 
         # Calculate expected duration (mean time to break)
+        # For charms that never broke, use num_ticks as a conservative estimate
         total_ticks = sum((breaks_by_tick[i] * i) for i in range(1, num_ticks + 1))
+        total_ticks += charms_still_active * num_ticks
         avg_ticks = total_ticks / num_simulations if num_simulations > 0 else 0
+
+        # Calculate percentiles and min/max from break_times
+        sorted_break_times = sorted(break_times)
+
+        def percentile(data, p):
+            """Calculate percentile from sorted data."""
+            if not data:
+                return 0
+            k = (len(data) - 1) * (p / 100.0)
+            f = int(k)
+            c = f + 1
+            if c >= len(data):
+                return data[-1]
+            return data[f] + (k - f) * (data[c] - data[f])
+
+        duration_stats = {
+            'min': min(break_times) if break_times else 0,
+            'max': max(break_times) if break_times else 0,
+            'avg': avg_ticks * 6,
+            'median': percentile(sorted_break_times, 50),
+            'p90': percentile(sorted_break_times, 90),
+            'p95': percentile(sorted_break_times, 95),
+            'p99': percentile(sorted_break_times, 99),
+        }
 
         return {
             'single_tick_break_probability': round(single_tick_break_prob * 100, 2),
@@ -229,6 +264,24 @@ class CharmCalculator:
             'tick_probabilities': tick_probabilities,
             'expected_duration_seconds': round(avg_ticks * 6, 1),
             'expected_duration_minutes': round(avg_ticks * 6 / 60, 2),
+            'duration_stats': {
+                'min_seconds': round(duration_stats['min'], 1),
+                'min_minutes': round(duration_stats['min'] / 60, 2),
+                'max_seconds': round(duration_stats['max'], 1),
+                'max_minutes': round(duration_stats['max'] / 60, 2),
+                'avg_seconds': round(duration_stats['avg'], 1),
+                'avg_minutes': round(duration_stats['avg'] / 60, 2),
+                'median_seconds': round(duration_stats['median'], 1),
+                'median_minutes': round(duration_stats['median'] / 60, 2),
+                'p90_seconds': round(duration_stats['p90'], 1),
+                'p90_minutes': round(duration_stats['p90'] / 60, 2),
+                'p95_seconds': round(duration_stats['p95'], 1),
+                'p95_minutes': round(duration_stats['p95'] / 60, 2),
+                'p99_seconds': round(duration_stats['p99'], 1),
+                'p99_minutes': round(duration_stats['p99'] / 60, 2),
+            },
+            'charms_still_active': charms_still_active,
+            'percent_lasting_full_duration': round((charms_still_active / num_simulations) * 100, 2),
             'num_simulations': num_simulations
         }
 

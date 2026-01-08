@@ -1,0 +1,155 @@
+{
+  "source": "pqdi.cc",
+  "scraped_at": "2026-01-08 14:31:39 UTC",
+  "spell_count": 14,
+  "spells": [
+    {
+      "id": 245,
+      "name": "Befriend Animal",
+      "class": "Druid",
+      "level": 14,
+      "resist_diff": 0,
+      "max_level": 24,
+      "mana": 70,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 260,
+      "name": "Charm Animals",
+      "class": "Druid",
+      "level": 24,
+      "resist_diff": 0,
+      "max_level": 33,
+      "mana": 120,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 753,
+      "name": "Beguile Plants",
+      "class": "Druid",
+      "level": 29,
+      "resist_diff": 0,
+      "max_level": 25,
+      "mana": 170,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 141,
+      "name": "Beguile Animals",
+      "class": "Druid",
+      "level": 34,
+      "resist_diff": 0,
+      "max_level": 43,
+      "mana": 170,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 142,
+      "name": "Allure of the Wild",
+      "class": "Druid",
+      "level": 44,
+      "resist_diff": 0,
+      "max_level": 49,
+      "mana": 220,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 1553,
+      "name": "Call of Karana",
+      "class": "Druid",
+      "level": 52,
+      "resist_diff": 0,
+      "max_level": 53,
+      "mana": 220,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 3445,
+      "name": "Command of Tunare",
+      "class": "Druid",
+      "level": 63,
+      "resist_diff": 0,
+      "max_level": 60,
+      "mana": 420,
+      "duration_ticks": 205,
+      "animal_only": true
+    },
+    {
+      "id": 300,
+      "name": "Charm",
+      "class": "Enchanter",
+      "level": 12,
+      "resist_diff": 0,
+      "max_level": 25,
+      "mana": 60,
+      "duration_ticks": 205
+    },
+    {
+      "id": 182,
+      "name": "Beguile",
+      "class": "Enchanter",
+      "level": 24,
+      "resist_diff": 0,
+      "max_level": 37,
+      "mana": 120,
+      "duration_ticks": 205
+    },
+    {
+      "id": 183,
+      "name": "Cajoling Whispers",
+      "class": "Enchanter",
+      "level": 39,
+      "resist_diff": 0,
+      "max_level": 46,
+      "mana": 195,
+      "duration_ticks": 205
+    },
+    {
+      "id": 184,
+      "name": "Allure",
+      "class": "Enchanter",
+      "level": 49,
+      "resist_diff": 0,
+      "max_level": 51,
+      "mana": 245,
+      "duration_ticks": 205
+    },
+    {
+      "id": 1705,
+      "name": "Boltran`s Agacerie",
+      "class": "Enchanter",
+      "level": 53,
+      "resist_diff": -10,
+      "max_level": 53,
+      "mana": 400,
+      "duration_ticks": 75
+    },
+    {
+      "id": 3355,
+      "name": "Command of Druzzil",
+      "class": "Enchanter",
+      "level": 64,
+      "resist_diff": 0,
+      "max_level": 64,
+      "mana": 700,
+      "duration_ticks": 75
+    },
+    {
+      "id": 197,
+      "name": "Beguile Undead",
+      "class": "Necromancer",
+      "level": 34,
+      "resist_diff": 0,
+      "max_level": 46,
+      "mana": 170,
+      "duration_ticks": 205,
+      "undead_only": true
+    }
+  ]
+}
